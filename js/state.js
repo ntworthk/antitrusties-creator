@@ -26,7 +26,16 @@ const State = {
 
     async loadFromGitHub() {
         try {
-            const response = await fetch(`https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${this.dataPath}`);
+            const timestamp = new Date().getTime();
+            const response = await fetch(
+                `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${this.dataPath}?_=${timestamp}`,
+                {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                }
+            );
             if (!response.ok) throw new Error('Failed to fetch data');
             
             const data = await response.json();
