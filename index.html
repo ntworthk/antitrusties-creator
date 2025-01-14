@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoustonKemp 2025 Predictions</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.10.17/interact.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -46,6 +47,36 @@
             color: var(--secondary-color);
             border-bottom: 2px solid #eee;
             padding-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-prediction {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .add-prediction input {
+            flex-grow: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .add-prediction button {
+            padding: 0.5rem 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-prediction button:hover {
+            background: var(--secondary-color);
         }
 
         .grid {
@@ -64,42 +95,41 @@
             touch-action: none;
             position: relative;
             margin-bottom: 1rem;
-        }
-
-        .prediction-card.correct {
-            border-left: 4px solid var(--correct-color);
-        }
-
-        .prediction-card.incorrect {
-            border-left: 4px solid var(--incorrect-color);
-        }
-
-        .prediction-card.pending {
-            border-left: 4px solid var(--pending-color);
-        }
-
-        .status-buttons {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+            align-items: start;
+            gap: 1rem;
         }
 
-        .status-button {
-            padding: 4px 8px;
-            border: none;
+        .status-box {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--pending-color);
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
-        .status-button.correct {
+        .status-box.correct {
+            border-color: var(--correct-color);
             background-color: var(--correct-color);
             color: white;
         }
 
-        .status-button.incorrect {
+        .status-box.incorrect {
+            border-color: var(--incorrect-color);
             background-color: var(--incorrect-color);
             color: white;
+        }
+
+        .prediction-content {
+            flex-grow: 1;
+        }
+
+        .prediction-text {
+            margin-bottom: 0.5rem;
         }
 
         .notes-section {
@@ -136,8 +166,12 @@
 
         <section id="available-picks" class="section">
             <h2 class="section-title">Available Picks</h2>
+            <div class="add-prediction">
+                <input type="text" id="new-prediction" placeholder="Enter a new prediction...">
+                <button onclick="addPrediction()">Add</button>
+            </div>
             <div class="predictions-container">
-                <!-- Sample predictions will be added here -->
+                <!-- Predictions will be added here -->
             </div>
         </section>
 
@@ -165,55 +199,69 @@
     </div>
 
     <script>
-        // Sample predictions data
-        const predictions = [
+        // Initialize data from localStorage or use defaults
+        let predictions = JSON.parse(localStorage.getItem('predictions')) || [
             {
                 id: 1,
                 text: "ACCC will block at least one merger in the energy sector",
                 status: "pending",
-                notes: ""
+                notes: "",
+                container: "available-picks"
             },
             {
                 id: 2,
                 text: "Telstra will attempt to acquire a media company",
                 status: "pending",
-                notes: ""
-            },
-            {
-                id: 3,
-                text: "NZCC will launch a market study into supermarkets",
-                status: "pending",
-                notes: ""
+                notes: "",
+                container: "available-picks"
             }
         ];
 
+        function saveToLocalStorage() {
+            localStorage.setItem('predictions', JSON.stringify(predictions));
+        }
+
         function createPredictionCard(prediction) {
             const card = document.createElement('div');
-            card.className = `prediction-card ${prediction.status}`;
+            card.className = 'prediction-card';
             card.setAttribute('data-id', prediction.id);
             
+            const statusIcon = prediction.status === 'correct' ? 'fa-check' :
+                             prediction.status === 'incorrect' ? 'fa-times' : '';
+            
             card.innerHTML = `
-                <div class="prediction-text">${prediction.text}</div>
-                <div class="status-buttons">
-                    <button class="status-button correct" onclick="updateStatus(${prediction.id}, 'correct')">Correct</button>
-                    <button class="status-button incorrect" onclick="updateStatus(${prediction.id}, 'incorrect')">Incorrect</button>
+                <div class="status-box ${prediction.status}" onclick="cycleStatus(${prediction.id})">
+                    ${statusIcon ? `<i class="fas ${statusIcon}"></i>` : ''}
                 </div>
-                <div class="notes-section">
-                    <input type="text" class="notes-input" placeholder="Add notes/links here..." 
-                           value="${prediction.notes}" 
-                           onchange="updateNotes(${prediction.id}, this.value)">
+                <div class="prediction-content">
+                    <div class="prediction-text">${prediction.text}</div>
+                    <div class="notes-section">
+                        <input type="text" class="notes-input" placeholder="Add notes/links here..." 
+                               value="${prediction.notes}" 
+                               onchange="updateNotes(${prediction.id}, this.value)">
+                    </div>
                 </div>
             `;
             
             return card;
         }
 
-        function updateStatus(id, status) {
+        function cycleStatus(id) {
             const prediction = predictions.find(p => p.id === id);
             if (prediction) {
-                prediction.status = status;
+                // Cycle through states: pending -> correct -> incorrect -> pending
+                prediction.status = prediction.status === 'pending' ? 'correct' :
+                                  prediction.status === 'correct' ? 'incorrect' : 'pending';
+                
                 const card = document.querySelector(`[data-id="${id}"]`);
-                card.className = `prediction-card ${status}`;
+                const statusBox = card.querySelector('.status-box');
+                statusBox.className = `status-box ${prediction.status}`;
+                
+                // Update icon
+                statusBox.innerHTML = prediction.status === 'correct' ? '<i class="fas fa-check"></i>' :
+                                    prediction.status === 'incorrect' ? '<i class="fas fa-times"></i>' : '';
+                
+                saveToLocalStorage();
             }
         }
 
@@ -221,6 +269,29 @@
             const prediction = predictions.find(p => p.id === id);
             if (prediction) {
                 prediction.notes = notes;
+                saveToLocalStorage();
+            }
+        }
+
+        function addPrediction() {
+            const input = document.getElementById('new-prediction');
+            const text = input.value.trim();
+            
+            if (text) {
+                const newPrediction = {
+                    id: Date.now(),
+                    text: text,
+                    status: 'pending',
+                    notes: '',
+                    container: 'available-picks'
+                };
+                
+                predictions.push(newPrediction);
+                const availableContainer = document.querySelector('#available-picks .predictions-container');
+                availableContainer.appendChild(createPredictionCard(newPrediction));
+                
+                input.value = '';
+                saveToLocalStorage();
             }
         }
 
@@ -268,6 +339,13 @@
             ondrop: function (event) {
                 const dragged = event.relatedTarget;
                 const dropzone = event.target;
+                const predictionId = parseInt(dragged.getAttribute('data-id'));
+                const prediction = predictions.find(p => p.id === predictionId);
+                
+                if (prediction) {
+                    prediction.container = dropzone.parentElement.id;
+                    saveToLocalStorage();
+                }
                 
                 dropzone.appendChild(dragged);
                 dragged.style.transform = 'translate(0px, 0px)';
@@ -280,11 +358,20 @@
             }
         });
 
-        // Initialize the page with sample predictions
+        // Initialize the page with stored predictions
         window.onload = function() {
-            const availableContainer = document.querySelector('#available-picks .predictions-container');
             predictions.forEach(prediction => {
-                availableContainer.appendChild(createPredictionCard(prediction));
+                const container = document.querySelector(`#${prediction.container} .predictions-container`);
+                if (container) {
+                    container.appendChild(createPredictionCard(prediction));
+                }
+            });
+
+            // Add enter key support for new predictions
+            document.getElementById('new-prediction').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addPrediction();
+                }
             });
         };
     </script>
