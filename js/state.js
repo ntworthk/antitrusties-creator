@@ -1,211 +1,86 @@
-// State management with GitHub integration
 const State = {
     predictions: [],
-    people: [],
-    isAdmin: false,
-    githubToken: null,
-    owner: null,
-    repo: null,
-    dataPath: 'data/predictions.json',
-    _pendingChanges: false,
+    userName: '',
+    userPicks: new Map(), // id -> points
+    maxPoints: 10,
 
     async initialize() {
-        this.githubToken = localStorage.getItem('githubToken');
-        this.isAdmin = !!this.githubToken;
-        
-        this.owner = 'ntworthk';
-        this.repo = 'antitrusties-data';
-        
-        // Initial load for all users
-        await this.loadFromGitHub();
-    },
-
-    hasPendingChanges() {
-        return this._pendingChanges;
-    },
-
-    async loadFromGitHub() {
         try {
-            const timestamp = new Date().getTime();
             const response = await fetch(
-                `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${this.dataPath}?_=${timestamp}`
+                `https://raw.githubusercontent.com/ntworthk/antitrusties-data/main/data/predictions.json`
             );
             if (!response.ok) throw new Error('Failed to fetch data');
-                
             const data = await response.json();
-            
-            this.predictions = data.predictions || [];
-            this.people = data.people || [];
-            this._lastSha = data.sha;
-            this._pendingChanges = false;
-
-            if (this.onDataChange) {
-                this.onDataChange();
-            }
-            
-            return true;
+            this.predictions = data.predictions.map(p => ({
+                id: p.id,
+                text: p.text,
+                status: p.status
+            })) || [];
         } catch (error) {
-            console.error('Error loading from GitHub:', error);
+            console.error('Error loading predictions:', error);
             this.predictions = [];
-            this.people = [];
-            return false;
         }
     },
 
-    async saveToGitHub(retryCount = 0) {
-        if (!this.isAdmin) {
-            console.error('Only admin can save changes');
-            return false;
-        }
+    getPointsUsed() {
+        return Array.from(this.userPicks.values()).reduce((sum, points) => sum + points, 0);
+    },
 
-        try {
-            const latestSha = await this.getLatestSha();
-            const content = {
-                predictions: this.predictions,
-                people: this.people
-            };
+    getPointsAvailable() {
+        return this.maxPoints - this.getPointsUsed();
+    },
 
-            const encodedContent = btoa(JSON.stringify(content, null, 2));
-            
-            const response = await fetch(
-                `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.dataPath}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${this.githubToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: 'Update predictions data',
-                        content: encodedContent,
-                        sha: latestSha
-                    })
-                }
-            );
-
-            if (!response.ok) {
-                if (response.status === 409 && retryCount < 3) {
-                    await this.loadFromGitHub();
-                    return await this.saveToGitHub(retryCount + 1);
-                }
-                throw new Error('Failed to save to GitHub');
-            }
-            
-            const updateData = await response.json();
-            this._lastSha = updateData.content.sha;
-            this._pendingChanges = false;
+    setPoints(predictionId, points) {
+        const currentTotal = this.getPointsUsed();
+        const currentPoints = this.userPicks.get(predictionId) || 0;
+        const newTotal = currentTotal - currentPoints + points;
+        
+        if (newTotal <= this.maxPoints) {
+            this.userPicks.set(predictionId, points);
             return true;
-        } catch (error) {
-            console.error('Error saving to GitHub:', error);
-            return false;
         }
+        return false;
     },
 
-    async getLatestSha() {
-        try {
-            const response = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.dataPath}`);
-            if (!response.ok) throw new Error('Failed to fetch latest SHA');
-            const data = await response.json();
-            return data.sha;
-        } catch (error) {
-            console.error('Error fetching latest SHA:', error);
-            throw error;
+    exportPicks() {
+        if (!this.userName) {
+            alert('Please enter your name first');
+            return;
         }
-    },
 
-    // Modified methods to mark pending changes
-    async addPerson(name) {
-        if (!this.isAdmin) return null;
-        
-        const person = {
-            id: crypto.randomUUID(),
-            name: name
-        };
-        this.people.push(person);
-        this._pendingChanges = true;
-        return person;
-    },
-
-    async addPrediction(text) {
-        if (!this.isAdmin) return null;
-        
-        const prediction = {
-            id: crypto.randomUUID(),
-            text: text,
-            status: 'pending',
-            notes: '',
-            container: 'available-picks'
-        };
-        this.predictions.push(prediction);
-        this._pendingChanges = true;
-        return prediction;
-    },
-
-    async updatePredictionStatus(id) {
-        if (!this.isAdmin) return null;
-        
-        const prediction = this.predictions.find(p => p.id === id);
-        if (prediction) {
-            prediction.status = prediction.status === 'pending' ? 'correct' :
-                              prediction.status === 'correct' ? 'incorrect' : 'pending';
-            this._pendingChanges = true;
+        const pointsAvailable = this.getPointsAvailable();
+        if (pointsAvailable > 0 && !confirm(`You still have ${pointsAvailable} points available. Are you sure you want to export now?`)) {
+            return;
         }
-        return prediction;
-    },
 
-    async updatePredictionNotes(id, notes) {
-        if (!this.isAdmin) return null;
-        
-        const prediction = this.predictions.find(p => p.id === id);
-        if (prediction) {
-            prediction.notes = notes;
-            this._pendingChanges = true;
-        }
-        return prediction;
-    },
-
-    async updatePredictionContainer(id, containerId) {
-        if (!this.isAdmin) return null;
-        
-        const prediction = this.predictions.find(p => p.id === id);
-        if (prediction) {
-            prediction.container = containerId;
-            this._pendingChanges = true;
-        }
-        return prediction;
-    },
-
-    getPredictionsForContainer(containerId) {
-        return this.predictions.filter(p => p.container === containerId);
-    },
-
-    async authenticateAsAdmin(token) {
-        try {
-            const response = await fetch('https://api.github.com/user', {
-                headers: {
-                    'Authorization': `token ${token}`
-                }
+        const picks = Array.from(this.userPicks.entries())
+            .filter(([_, points]) => points > 0)
+            .map(([id, points]) => {
+                const prediction = this.predictions.find(p => p.id === id);
+                return {
+                    id,
+                    text: prediction.text,
+                    points
+                };
             });
-            
-            if (response.ok) {
-                const userData = await response.json();
-                if (userData.login === this.owner) {
-                    this.githubToken = token;
-                    this.isAdmin = true;
-                    localStorage.setItem('githubToken', token);
-                    return true;
-                }
-            }
-            return false;
-        } catch (error) {
-            console.error('Error authenticating:', error);
-            return false;
-        }
-    },
 
-    logout() {
-        this.githubToken = null;
-        this.isAdmin = false;
-        localStorage.removeItem('githubToken');
+        const data = {
+            name: this.userName,
+            timestamp: new Date().toISOString(),
+            picks
+        };
+
+        const jsonString = JSON.stringify(data);
+        const base64Data = btoa(jsonString);
+        
+        const blob = new Blob([base64Data], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `antitrusties-picks-${this.userName.toLowerCase().replace(/\s+/g, '-')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 };
