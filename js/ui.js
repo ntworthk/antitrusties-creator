@@ -57,6 +57,14 @@ const UI = {
     },
 
     attachEventListeners() {
+        window.addEventListener('scroll', () => {
+            const headerControls = document.querySelector('.header-controls');
+            if (window.scrollY > 100) {
+                headerControls.classList.add('scrolled');
+            } else {
+                headerControls.classList.remove('scrolled');
+            }
+        });
         document.addEventListener('input', e => {
             if (e.target.classList.contains('points-slider')) {
                 const points = parseInt(e.target.value);

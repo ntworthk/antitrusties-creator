@@ -81,6 +81,19 @@ body {
     background: var(--surface);
     border-radius: 4px;
     box-shadow: 0 1px 3px var(--shadow);
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+    transition: width 0.3s ease, margin 0.3s ease;
+    width: 100%;
+}
+
+.header-controls.scrolled {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    padding-left: 30px;
+    padding-right: 30px;
+    box-shadow: 0 2px 6px var(--shadow);
 }
 
 .form-input {
@@ -126,6 +139,7 @@ body {
     border-radius: 2px;
     background: var(--border);
     outline: none;
+    background: linear-gradient(to right, var(--primary) 0%, var(--primary) 0%, var(--border) 0%);
 }
 
 .points-slider::-webkit-slider-thumb {
@@ -153,6 +167,7 @@ body {
 .points-slider::-moz-range-thumb:hover {
     background: var(--secondary);
 }
+
 
 .points-value {
     margin-left: 10px;
