@@ -90,3 +90,72 @@ body {
     position: relative;
     z-index: 1;
 }
+
+.admin-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.admin-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.admin-sync {
+    opacity: 0.5;
+}
+
+.admin-sync.has-changes {
+    opacity: 1;
+}
+
+.admin-sync.syncing i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.admin-login {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+}
+
+.admin-login.hidden {
+    display: none;
+}
+
+.admin-login-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.admin-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.hidden {
+    display: none !important;
+}
