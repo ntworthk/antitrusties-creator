@@ -26,7 +26,7 @@ const State = {
 
     async loadFromGitHub() {
         try {
-            const response = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.dataPath}`);
+            const response = await fetch(`https://github.com/${this.owner}/${this.repo}/raw/refs/heads/main/${this.dataPath}`);
             if (!response.ok) throw new Error('Failed to fetch data');
             
             const data = await response.json();
