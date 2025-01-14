@@ -26,14 +26,13 @@ const State = {
 
     async loadFromGitHub() {
         try {
-            const response = await fetch(`https://github.com/${this.owner}/${this.repo}/raw/refs/heads/main/${this.dataPath}`);
+            const response = await fetch(`https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${this.dataPath}`);
             if (!response.ok) throw new Error('Failed to fetch data');
             
             const data = await response.json();
-            const content = JSON.parse(atob(data.content));
             
-            this.predictions = content.predictions || [];
-            this.people = content.people || [];
+            this.predictions = data.predictions || [];
+            this.people = data.people || [];
             this._lastSha = data.sha;
             this._pendingChanges = false;
 
