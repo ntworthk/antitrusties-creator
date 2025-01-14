@@ -28,16 +28,10 @@ const State = {
         try {
             const timestamp = new Date().getTime();
             const response = await fetch(
-                `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${this.dataPath}?_=${timestamp}`,
-                {
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                }
+                `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${this.dataPath}?_=${timestamp}`
             );
             if (!response.ok) throw new Error('Failed to fetch data');
-            
+                
             const data = await response.json();
             
             this.predictions = data.predictions || [];
