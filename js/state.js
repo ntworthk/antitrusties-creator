@@ -42,7 +42,7 @@ const State = {
         return false;
     },
 
-    exportPicks() {
+    async exportPicks() {
         if (!this.userName) {
             alert('Please enter your name first');
             return;
@@ -73,14 +73,25 @@ const State = {
         const jsonString = JSON.stringify(data);
         const base64Data = btoa(jsonString);
         
-        const blob = new Blob([base64Data], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `antitrusties-picks-${this.userName.toLowerCase().replace(/\s+/g, '-')}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        try {
+            const response = await fetch('https://cardioid.co.nz/api/submit_pick', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `pick_base64=${encodeURIComponent(base64Data)}`
+            });
+
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                alert('Your picks have been successfully submitted!');
+            } else {
+                alert(`Error submitting picks: ${result.message}`);
+            }
+        } catch (error) {
+            alert('Failed to submit picks. Please try again later.');
+            console.error('Error:', error);
+        }
     }
 };
