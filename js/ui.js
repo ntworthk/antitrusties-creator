@@ -9,14 +9,55 @@ const UI = {
         this.templates.person = document.getElementById('person-template');
         this.templates.prediction = document.getElementById('prediction-template');
         this.render();
+        
+        // Add loading indicator styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .loading {
+                position: relative;
+            }
+            .loading:after {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            }
+            .loading:before {
+                content: 'Loading...';
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 10000;
+                font-weight: bold;
+            }
+        `;
+        document.head.appendChild(style);
     },
 
-    render() {
-        this.renderPeople();
-        this.renderPredictions();
+    async render() {
+        // Show loading state during render
+        document.body.classList.add('loading');
+        
+        try {
+            await this.renderPeople();
+            await this.renderPredictions();
+            
+            // Update UI based on admin status
+            this.updateAdminUI();
+        } finally {
+            document.body.classList.remove('loading');
+        }
     },
 
-    renderPeople() {
+    async renderPeople() {
         const grid = document.querySelector('.persons-grid');
         grid.innerHTML = '';
         
@@ -24,12 +65,11 @@ const UI = {
             const container = this.createPersonContainer(person);
             grid.appendChild(container);
             const dropzone = container.querySelector('.dropzone');
-            console.log('Reinitializing dropzone for person:', person.name, dropzone);
             DragDrop.reinitializeForElement(container.querySelector('.dropzone'));
         });
     },
 
-    renderPredictions() {
+    async renderPredictions() {
         // Clear all prediction cards
         document.querySelectorAll('.dropzone').forEach(zone => {
             zone.innerHTML = '';
@@ -80,24 +120,49 @@ const UI = {
             status.appendChild(icon);
         }
 
-        // Event listeners
-        status.addEventListener('click', () => {
-            const updated = State.updatePredictionStatus(prediction.id);
-            if (updated) {
-                status.className = `status-indicator ${updated.status}`;
-                status.innerHTML = '';
-                if (updated.status !== 'pending') {
-                    const icon = document.createElement('i');
-                    icon.className = `fas fa-${updated.status === 'correct' ? 'check' : 'times'}`;
-                    status.appendChild(icon);
+        // Only add interactive elements if user is admin
+        if (State.isAdmin) {
+            // Event listeners
+            status.addEventListener('click', async () => {
+                const updated = await State.updatePredictionStatus(prediction.id);
+                if (updated) {
+                    status.className = `status-indicator ${updated.status}`;
+                    status.innerHTML = '';
+                    if (updated.status !== 'pending') {
+                        const icon = document.createElement('i');
+                        icon.className = `fas fa-${updated.status === 'correct' ? 'check' : 'times'}`;
+                        status.appendChild(icon);
+                    }
                 }
-            }
-        });
+            });
 
-        notes.addEventListener('change', (e) => {
-            State.updatePredictionNotes(prediction.id, e.target.value);
-        });
+            notes.addEventListener('change', async (e) => {
+                await State.updatePredictionNotes(prediction.id, e.target.value);
+            });
+        } else {
+            // Make elements read-only for non-admin users
+            status.style.cursor = 'default';
+            notes.readOnly = true;
+            card.classList.add('read-only');
+        }
 
         return card;
+    },
+
+    updateAdminUI() {
+        // Update UI elements based on admin status
+        document.body.classList.toggle('admin-mode', State.isAdmin);
+        
+        // Update drag-drop functionality
+        if (!State.isAdmin) {
+            document.querySelectorAll('.prediction-card').forEach(card => {
+                card.classList.add('no-drag');
+            });
+        }
+        
+        // Show/hide admin-only buttons
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = State.isAdmin ? '' : 'none';
+        });
     }
 };

@@ -53,15 +53,12 @@ initializeDraggable() {
 },
 
 initializeDropzones() {
-    console.log('Initializing dropzones...');
     const dropzones = document.querySelectorAll('.dropzone');
-    console.log('Found dropzones:', dropzones);
 
     interact('.dropzone').dropzone({
         accept: '.prediction-card',
         overlap: 0.5, // Reduced from 0.75 to make it easier to drop
         ondropactivate: (event) => {
-            console.log('Dropzone activated');  // Add this
             event.target.classList.add('drop-active');
         },
         ondragenter: (event) => {
@@ -128,22 +125,15 @@ initializeDropzones() {
     },
 
     handleDrop(event) {
-    console.log('Drop event triggered');
-    console.log('Dragged element:', event.relatedTarget);
-    console.log('Drop target:', event.target);
     
     const predictionCard = event.relatedTarget;
     const dropzone = event.target;
-    console.log('Prediction ID:', predictionCard.getAttribute('data-id'));
-    console.log('Container ID:', dropzone.getAttribute('data-person-id'));
     
     const predictionId = predictionCard.getAttribute('data-id');
     const containerId = dropzone.hasAttribute('data-person-id') ? 
         dropzone.getAttribute('data-person-id') : 
         'available-picks';
     
-    console.log('Final container ID:', containerId);
-
     // Update state
     State.updatePredictionContainer(predictionId, containerId);
 
@@ -162,7 +152,6 @@ initializeDropzones() {
     },
 
     reinitializeForElement(element) {
-        console.log('Reinitializing element:', element);
         if (element.classList.contains('prediction-card')) {
             this.initializeDraggable(element);
         }

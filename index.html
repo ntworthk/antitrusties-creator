@@ -86,6 +86,29 @@
             </div>
         </div>
     </div>
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-controls">
+            <button id="syncButton" class="btn btn-small admin-sync hidden" title="Sync changes">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button id="showAdminLogin" class="btn btn-small">
+                <i class="fas fa-lock"></i>
+            </button>
+        </div>
+        <div id="adminLogin" class="admin-login hidden">
+            <div class="admin-login-content">
+                <h3>Admin Login</h3>
+                <input type="password" 
+                       id="githubToken" 
+                       placeholder="Enter GitHub Token"
+                       class="admin-input">
+                <div class="admin-buttons">
+                    <button id="loginButton" class="btn">Login</button>
+                    <button id="cancelLogin" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Templates -->
     <template id="person-template">
@@ -113,5 +136,6 @@
     <script src="js/ui.js"></script>
     <script src="js/modals.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/admin.js"></script>
 </body>
 </html>
