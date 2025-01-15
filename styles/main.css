@@ -189,14 +189,24 @@ body {
     background: var(--secondary);
 }
 
-.risky-btn {
+.risky-btn-container {
+    width: 100px;
     margin-left: 10px;
+    display: inline-block;
+}
+
+.risky-btn {
     font-size: 0.9rem;
     padding: 4px 8px;
+    width: 100%;
 }
 
 .risky-btn.active {
     background: var(--success);
+}
+
+.risky-btn:hover {
+    position: relative;
 }
 
 @media (max-width: 768px) {
