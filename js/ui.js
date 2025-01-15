@@ -13,9 +13,9 @@ const UI = {
                 <input type="text" id="userName" placeholder="Enter your name" class="form-input">
             </div>
             <div class="points-display">
-                Points Available: <span id="pointsAvailable">${State.getPointsAvailable()}</span>
+                Points available: <span id="pointsAvailable">${State.getPointsAvailable()}</span>
             </div>
-            <button id="exportButton" class="btn">Export Picks</button>
+            <button id="exportButton" class="btn">Export picks</button>
         `;
         document.querySelector('.container').insertBefore(header, document.getElementById('available-section'));
     },
@@ -86,6 +86,26 @@ const UI = {
                     document.getElementById('pointsAvailable').textContent = State.getPointsAvailable();
                     const percentage = (points / 3) * 100;
                     e.target.style.background = `linear-gradient(to right, var(--primary) 0%, var(--primary) ${percentage}%, var(--border) ${percentage}%)`;
+                    
+                    // Update the risky button container
+                    const card = e.target.closest('.prediction-card');
+                    const riskyBtnContainer = card.querySelector('.risky-btn-container');
+                    const isRisky = State.riskyPickId === id;
+                    
+                    if (points > 0) {
+                        riskyBtnContainer.innerHTML = `
+                            <button class="btn risky-btn ${isRisky ? 'active' : ''}" 
+                                    data-id="${id}"
+                                    title="Increase the risk - make this pick worth double but negative if you get it wrong">
+                                ${isRisky ? 'Risky ✓' : 'Make Risky'}
+                            </button>
+                        `;
+                    } else {
+                        riskyBtnContainer.innerHTML = '';
+                        if (isRisky) {
+                            State.setRiskyPick(id); // Remove risky status if points are set to 0
+                        }
+                    }
                 } else {
                     e.target.value = State.userPicks.get(id) || 0;
                     e.target.nextElementSibling.textContent = e.target.value;
