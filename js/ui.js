@@ -130,6 +130,13 @@ const UI = {
         document.getElementById('exportButton').addEventListener('click', () => {
             State.exportPicks();
         });
+
+        document.querySelector('.rules-toggle').addEventListener('click', (e) => {
+            const content = document.querySelector('.rules-content');
+            content.classList.toggle('hidden');
+            e.target.textContent = content.classList.contains('hidden') ? 'Show rules' : 'Hide rules';
+        });
+
     },
 
     updatePointsDisplay() {
