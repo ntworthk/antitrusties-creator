@@ -55,7 +55,7 @@ const UI = {
                             <button class="btn risky-btn ${isRisky ? 'active' : ''}" 
                                     data-id="${prediction.id}"
                                     title="Increase the risk - make this pick worth double but negative if you get it wrong">
-                                ${isRisky ? 'Risky ✓' : 'Make Risky'}
+                                ${isRisky ? '⚡ Risky' : 'Make Risky'}
                             </button>
                         ` : ''}
                     </div>

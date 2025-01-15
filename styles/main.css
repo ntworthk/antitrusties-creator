@@ -242,7 +242,8 @@ body {
 }
 
 .risky-btn.active {
-    background: var(--success);
+    background: #fff3cd;
+    color: #856404
 }
 
 .risky-btn:hover {
