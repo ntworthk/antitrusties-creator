@@ -36,6 +36,7 @@ const UI = {
         card.setAttribute('data-id', prediction.id);
 
         const currentPoints = State.userPicks.get(prediction.id) || 0;
+        const isRisky = State.riskyPickId === prediction.id;
 
         card.innerHTML = `
             <div class="prediction-content">
@@ -49,6 +50,9 @@ const UI = {
                            value="${currentPoints}"
                            data-id="${prediction.id}">
                     <span class="points-value">${currentPoints}</span>
+                    <button class="btn risky-btn ${isRisky ? 'active' : ''}" data-id="${prediction.id}">
+                        ${isRisky ? 'Risky ✓' : 'Make Risky'}
+                    </button>
                 </div>
             </div>
         `;
@@ -65,6 +69,7 @@ const UI = {
                 headerControls.classList.remove('scrolled');
             }
         });
+
         document.addEventListener('input', e => {
             if (e.target.classList.contains('points-slider')) {
                 const points = parseInt(e.target.value);
@@ -81,6 +86,14 @@ const UI = {
                     const percentage = (e.target.value / 3) * 100;
                     e.target.style.background = `linear-gradient(to right, var(--primary) 0%, var(--primary) ${percentage}%, var(--border) ${percentage}%)`;
                 }
+            }
+        });
+
+        document.addEventListener('click', e => {
+            if (e.target.classList.contains('risky-btn')) {
+                const id = e.target.dataset.id;
+                State.setRiskyPick(id);
+                this.renderPredictions();
             }
         });
 

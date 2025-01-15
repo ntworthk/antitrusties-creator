@@ -189,6 +189,16 @@ body {
     background: var(--secondary);
 }
 
+.risky-btn {
+    margin-left: 10px;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+}
+
+.risky-btn.active {
+    background: var(--success);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 1rem;

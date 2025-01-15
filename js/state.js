@@ -3,7 +3,8 @@ const State = {
     userName: '',
     userPicks: new Map(),
     maxPoints: 10,
- 
+    riskyPickId: null,
+
     async initialize() {
         try {
             const response = await fetch('https://cardioid.co.nz/api/predictions');
@@ -19,15 +20,15 @@ const State = {
             this.predictions = [];
         }
     },
- 
+
     getPointsUsed() {
         return Array.from(this.userPicks.values()).reduce((sum, points) => sum + points, 0);
     },
- 
+
     getPointsAvailable() {
         return this.maxPoints - this.getPointsUsed();
     },
- 
+
     setPoints(predictionId, points) {
         const currentTotal = this.getPointsUsed();
         const currentPoints = this.userPicks.get(predictionId) || 0;
@@ -39,18 +40,27 @@ const State = {
         }
         return false;
     },
- 
+
+    setRiskyPick(predictionId) {
+        if (predictionId === this.riskyPickId) {
+            this.riskyPickId = null;
+        } else {
+            this.riskyPickId = predictionId;
+        }
+        return true;
+    },
+
     async exportPicks() {
         if (!this.userName) {
             alert('Please enter your name first');
             return;
         }
- 
+
         const pointsAvailable = this.getPointsAvailable();
         if (pointsAvailable > 0 && !confirm(`You still have ${pointsAvailable} points available. Are you sure you want to export now?`)) {
             return;
         }
- 
+
         const picks = Array.from(this.userPicks.entries())
             .filter(([_, points]) => points > 0)
             .map(([id, points]) => {
@@ -58,16 +68,17 @@ const State = {
                 return {
                     id,
                     text: prediction.text,
-                    points
+                    points,
+                    risky: id === this.riskyPickId
                 };
             });
- 
+
         const data = {
             name: this.userName,
             timestamp: new Date().toISOString(),
             picks
         };
- 
+
         const jsonString = JSON.stringify(data);
         const base64Data = btoa(jsonString);
         
@@ -79,7 +90,7 @@ const State = {
                 },
                 body: `pick_base64=${encodeURIComponent(base64Data)}`
             });
- 
+
             const result = await response.json();
             
             if (result.status === 'success') {
@@ -92,4 +103,4 @@ const State = {
             console.error('Error:', error);
         }
     }
- };
+};
