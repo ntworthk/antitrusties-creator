@@ -57,7 +57,7 @@ const State = {
         }
 
         const pointsAvailable = this.getPointsAvailable();
-        if (pointsAvailable > 0 && !confirm(`You still have ${pointsAvailable} points available. Are you sure you want to export now?`)) {
+        if (pointsAvailable > 0 && !confirm(`You still have ${pointsAvailable} points available. Are you sure you want to submit now?`)) {
             return;
         }
 

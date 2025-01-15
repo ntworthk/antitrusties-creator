@@ -15,7 +15,7 @@ const UI = {
             <div class="points-display">
                 Points available: <span id="pointsAvailable">${State.getPointsAvailable()}</span>
             </div>
-            <button id="exportButton" class="btn">Export picks</button>
+            <button id="exportButton" class="btn">Submit picks</button>
         `;
         document.querySelector('.container').insertBefore(header, document.getElementById('available-section'));
     },
