@@ -53,7 +53,6 @@ const UI = {
                     <div class="risky-btn-container">
                         ${currentPoints > 0 ? `
                             <button class="${isRisky ? 'risky-badge' : 'btn risky-btn'}" 
-                                    data-id="${id}"
                                     title="Increase the risk - make this pick worth double but negative if you get it wrong">
                                 ${isRisky ? '<i class="fas fa-bolt"></i> Risky' : 'Make Risky'}
                             </button>
