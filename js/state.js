@@ -1,15 +1,13 @@
 const State = {
     predictions: [],
     userName: '',
-    userPicks: new Map(), // id -> points
+    userPicks: new Map(),
     maxPoints: 10,
-
+ 
     async initialize() {
         try {
-            const response = await fetch(
-                `https://raw.githubusercontent.com/ntworthk/antitrusties-data/main/data/predictions.json`
-            );
-            if (!response.ok) throw new Error('Failed to fetch data');
+            const response = await fetch('https://cardioid.co.nz/api/predictions');
+            if (!response.ok) throw new Error('Failed to fetch predictions');
             const data = await response.json();
             this.predictions = data.predictions.map(p => ({
                 id: p.id,
@@ -21,15 +19,15 @@ const State = {
             this.predictions = [];
         }
     },
-
+ 
     getPointsUsed() {
         return Array.from(this.userPicks.values()).reduce((sum, points) => sum + points, 0);
     },
-
+ 
     getPointsAvailable() {
         return this.maxPoints - this.getPointsUsed();
     },
-
+ 
     setPoints(predictionId, points) {
         const currentTotal = this.getPointsUsed();
         const currentPoints = this.userPicks.get(predictionId) || 0;
@@ -41,18 +39,18 @@ const State = {
         }
         return false;
     },
-
+ 
     async exportPicks() {
         if (!this.userName) {
             alert('Please enter your name first');
             return;
         }
-
+ 
         const pointsAvailable = this.getPointsAvailable();
         if (pointsAvailable > 0 && !confirm(`You still have ${pointsAvailable} points available. Are you sure you want to export now?`)) {
             return;
         }
-
+ 
         const picks = Array.from(this.userPicks.entries())
             .filter(([_, points]) => points > 0)
             .map(([id, points]) => {
@@ -63,13 +61,13 @@ const State = {
                     points
                 };
             });
-
+ 
         const data = {
             name: this.userName,
             timestamp: new Date().toISOString(),
             picks
         };
-
+ 
         const jsonString = JSON.stringify(data);
         const base64Data = btoa(jsonString);
         
@@ -81,7 +79,7 @@ const State = {
                 },
                 body: `pick_base64=${encodeURIComponent(base64Data)}`
             });
-
+ 
             const result = await response.json();
             
             if (result.status === 'success') {
@@ -94,4 +92,4 @@ const State = {
             console.error('Error:', error);
         }
     }
-};
+ };
