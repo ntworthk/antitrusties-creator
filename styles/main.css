@@ -172,6 +172,14 @@ body {
     word-break: break-word;
 }
 
+.prediction-notes {
+    color: var(--text);
+    opacity: 0.7;
+    font-size: 0.9em;
+    margin-top: 4px;
+    font-style: italic;
+}
+
 .points-slider {
     -webkit-appearance: none;
     width: 120px;

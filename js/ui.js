@@ -41,6 +41,7 @@ const UI = {
         card.innerHTML = `
             <div class="prediction-content">
                 <p class="prediction-text">${prediction.text}</p>
+                ${prediction.notes ? `<p class="prediction-notes">${prediction.notes}</p>` : ''}
                 <div class="points-control">
                     <input type="range" 
                            class="points-slider" 

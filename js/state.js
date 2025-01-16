@@ -13,7 +13,8 @@ const State = {
             this.predictions = data.predictions.map(p => ({
                 id: p.id,
                 text: p.text,
-                status: p.status
+                status: p.status,
+                notes: p.notes
             })) || [];
         } catch (error) {
             console.error('Error loading predictions:', error);
